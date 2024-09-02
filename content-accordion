@@ -1,0 +1,244 @@
+{% assign blocks = section.blocks %}
+{%- if section.settings.seo_heading -%}
+<div class="page-width"> 
+  <div class="seo-content-with-faqs"  style="width:{{ section.settings.box_width }}%">
+      <div class="seo-content-blocks"><h1> {{ section.settings.seo_heading }} </h1>
+       <div class="topcontent" style="margin-bottom: 30px;">{{  section.settings.content_top}}</div>
+      </div>
+     <div class="fpd-accordion">
+          {% for cb in blocks %}
+            {% if cb.type == "text_block" %}
+              <div class="fpd-accordion-item">
+                <div class="fpd-accordion-header"><h2>{{ cb.settings.title_block }}</h2></div>
+                <div class="fpd-accordion-content">
+                  {{ cb.settings.content_block }}
+                </div>
+              </div>
+            {%- endif -%}
+          {% endfor %}
+     </div>
+  </div>
+</div>
+<style>
+.seo-content-with-faqs {
+  margin: 0 auto; 
+  margin-top: {{ section.settings.margin_top }}px;
+  margin-bottom: {{ section.settings.margin_bottom }}px;
+}
+.fpd-accordion-content table p {
+  margin-bottom: 0;
+    text-align:center;
+}
+.seo-content-blocks {
+    display: block;
+    max-width: 1500px;
+    margin: 0 auto;
+}  
+.fpd-accordion-header h2 {
+    font-size: 18px;
+}
+.fpd-accordion table {
+  margin-bottom: 30px;
+}
+.fpd-accordion {
+  margin: 10px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.fpd-accordion-header {
+  position: relative;
+  cursor: pointer;
+  font-weight: bold;
+}
+.fpd-accordion-content {
+  padding: 10px;
+  display: none;
+}
+.fpd-accordion-header h2::after {
+    content: "\2304";
+    font-size: {{ section.settings.icon_size }}px;
+    position: absolute;
+    top: -14px;
+    margin-left: 6px;
+}
+.fpd-accordion-header.active h2::after  {
+    transform: rotate(180deg);
+    top: 0;
+}
+/* Add the 'active' class to show the content when expanded */
+.fpd-accordion-item.active .fpd-accordion-content {
+  display: block;
+}
+@media only screen and (max-width: 600px) {
+  .fpd-accordion-header h2 {
+    max-width:90%;
+  }
+  .fpd-accordion-header h2::after {
+   right: 0;
+   top: -14px; 
+  }
+  .fpd-accordion-header.active h2::after  {
+   top: 4px;
+  }
+}
+  
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const accordionItems = document.querySelectorAll(".fpd-accordion-item");
+  function toggleAccordion() {
+    const content = this.parentNode.querySelector(".fpd-accordion-content");
+    // Toggle the 'active' class and adjust the display style directly
+    this.classList.toggle("active");
+    content.style.display = content.style.display === "block" ? "none" : "block";
+
+    // Hide other open accordion items
+    accordionItems.forEach(item => {
+      if (item !== this && item.classList.contains("active")) {
+        item.classList.remove("active");
+        item.querySelector(".fpd-accordion-content").style.display = "none";
+      }
+    });
+  }
+  accordionItems.forEach(item => {
+    const header = item.querySelector(".fpd-accordion-header h2, .fpd-accordion-header");
+    header.addEventListener("click", toggleAccordion);
+
+    // Initialize the initial state of accordion items
+    const content = item.querySelector(".fpd-accordion-content");
+    if (!content.style.display) {
+      content.style.display = "none";
+    }
+  });
+});
+
+document.addEventListener('click', handleClick);
+// Click event handler function
+function handleClick(event) {
+  // Access the clicked element using event.target
+  const clickedElement = event.target;
+
+  // Get the tag name of the clicked element
+  const clickedTagName = clickedElement.tagName;
+
+  // Do something with the clicked tag name
+  console.log('Clicked tag name:', clickedTagName);
+}
+</script>
+{%- endif -%}
+{% schema %}
+{
+    "name": "FPD Content Accordion",
+    "settings": [
+       {
+            "type": "text",
+            "id": "seo_heading",
+            "label": "Content Brief H1",
+            "default": "Paula Heading h1 here"
+        },
+       {
+            "type": "richtext",
+            "id": "content_top",
+            "label": "First Paragraph",
+            "default": "<p>Lorep ipsum</p>"
+        },
+         {
+            "type": "range",
+            "id": "icon_size",
+            "min": 10,
+            "max": 40,
+            "step": 1,
+            "unit": "px",
+            "label": "Toogle Icon Size",
+            "default": 14
+        },
+        {
+            "type": "range",
+            "id": "margin_top",
+            "min": 20,
+            "max": 500,
+            "step": 20,
+            "unit": "px",
+            "label": "Top Margin",
+            "default": 20
+        },
+         {
+            "type": "range",
+            "id": "margin_bottom",
+            "min": 20,
+            "max": 500,
+            "step": 20,
+            "unit": "px",
+            "label": "Bottom Margin",
+            "default": 20
+        },
+        {
+            "type": "range",
+            "id": "box_width",
+            "min": 20,
+            "max": 100,
+            "step": 20,
+            "unit": "%",
+            "label": "Box Width",
+            "default": 80
+        },
+        {
+            "type": "radio",
+            "id": "title_aligment",
+            "label": "Title Alignment",
+            "options": [
+                    {
+                    "value": "left",
+                    "label": "Left"
+                    },
+                    {
+                    "value": "center",
+                    "label": "Centered"
+                    }
+            ],
+            "default": "left"
+        },
+        {
+            "type": "textarea",
+            "id": "content_style",
+            "label": "Custom Button CSS",
+            "default": "color:black; font-size: 16px; padding: 0px ;"
+        }
+    ],
+    "blocks": [
+      {
+      "type": "text_block",
+      "name": "Content Block",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title_block",
+          "label": "Title BLock",
+          "default": "<p>Lorem ipsum</p>"
+        },
+        {
+          "type": "richtext",
+          "id": "content_block",
+          "label": "Content Block",
+          "default": "<p>Lorem ipsum</p>"
+        }]
+      }
+    ],
+    "presets": [
+    {
+      "name": "FPD Content Accordion",
+      "category": "Text",
+      "blocks": [
+        {
+          "type": "text_block"
+        },
+        {
+          "type": "text_block"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
