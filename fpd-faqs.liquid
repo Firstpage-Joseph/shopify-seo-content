@@ -1,0 +1,210 @@
+<script
+  type="application/json"
+  data-section-type="faq"
+  data-section-id="{{ section.id }}"
+>
+  {% assign faq_blocks = section.blocks | where: "type", "content" %}
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {% for faq in faq_blocks %}
+        {
+          "@type": "Question",
+          "name": "{{ faq.settings.title | escape }}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{{ faq.settings.answer | strip_html | escape }}"
+          }
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  }
+</script>
+{% if section.blocks.size > 0 %}
+<section class="section">
+  <div class="container">
+    <fp-faqs-microdata id="fpd-faqs-block-{{ section.id }}">
+       {% if section.settings.title != blank %}
+          <h2>{{ section.settings.title | escape }}</h2>
+       {% endif %}
+       {% if section.blocks.size > 0 %}
+         {% for block in section.blocks %}
+           
+               <fp-faqs-item itemprop="mainEntity" class="fp-faqs-item" itemtype="https://schema.org/Question">
+                     {% if block.settings.title != blank %}
+                      <div class="fpf-question"><h3 itemprop="name"> {{ block.settings.title }} </h3></div>
+                     {% endif %}
+                    <div class="fpf-answer" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                             {{ block.settings.answer }}
+                        </div>
+                    </div>
+                </fp-faqs-item>
+         {% endfor %}
+      {% endif %}
+    </fp-faqs-microdata>
+    </div>
+</section>
+
+<style>
+#fpd-faqs-block-{{ section.id }} {
+    text-align: left;
+    margin-top: 80px;
+    margin-bottom: 150px;
+    display: block;
+    max-width: 800px;
+}
+#fpd-faqs-block-{{ section.id }} h2 {
+    display: block;
+}
+#fpd-faqs-block-{{ section.id }} [itemprop="name"]::after {
+    content: "\002B";
+    font-size: '30px';
+    position: absolute;
+    right: 1rem;
+}
+#fpd-faqs-block-{{ section.id }} .clicked[itemprop="name"]::after {
+    content: "\2212";
+}
+@media only screen and (max-width: 600px) {
+    #fpd-faqs-block-{{ section.id }} {
+        width: 100%;
+    }
+}
+fp-faqs-microdata {
+    display: block;
+    margin: 0 auto;
+}
+fp-faqs-microdata fp-faqs-item .unexpand {
+  visibility: hidden;
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
+fp-faqs-microdata .fpf-answer ul{
+    text-align: left;
+    display: block;
+    padding: 20px 0;
+    max-width: 500px;
+    margin: 0 auto;
+}
+fp-faqs-microdata [itemprop="name"] {
+    position: relative;
+    cursor: pointer;
+    font-size: 14px;
+    margin: 0;
+    padding: 12px 0;
+}
+
+fp-faqs-microdata .expand_icon {
+  position:absolute;
+  right: 0
+}
+
+fp-faqs-microdata .fpf-question {
+  border-bottom: 1px solid #aaa;
+}
+fp-faqs-microdata .fpf-answer {
+  display: block;
+}
+fp-faqs-microdata .fpf-answer [itemprop="text"] {
+  padding-top: 10px;
+  font-size: 14px;
+}
+</style>
+<script>
+(function () {
+  
+const uniquePrefix = 'fp';
+    
+class FirstPageFaqsMicrodata extends HTMLElement {
+    // observable attribute
+    static get observedAttributes() {
+      return ['accordion'];  
+    }
+    get acceptAnswerItem() {
+      return this.querySelectorAll('[itemprop="acceptedAnswer"]');
+    }
+    constructor() {
+      super();
+      this.style.width = this.getAttribute('width') +'%';
+    }
+    connectedCallback() {
+      this.setAttribute('accordion', true);
+      this.querySelectorAll('[itemprop="acceptedAnswer"]').forEach(
+        item => item.classList.add('unexpand')
+      );
+      this.querySelectorAll(".fpf-question").forEach(
+        input => input.addEventListener("click", this.handleButtonClick));   
+    }
+    handleButtonClick(event) {
+      var pepq = this.parentElement.parentElement;
+      pepq.querySelectorAll('[itemprop="acceptedAnswer"]')
+       .forEach(function (item) {
+         if (!item.classList.contains('unexpand')) {  
+           // item.classList.add('unexpand'); 
+         }
+       });
+       if(event.type  == 'click') {
+          event.target.classList.toggle('clicked');
+          if (typeof event.target.parentNode.nextElementSibling.classList != 'undefined') {
+            event.target.parentNode.nextElementSibling.classList.toggle('unexpand');
+          }
+       }
+    }
+  }
+  
+  customElements.define(`${uniquePrefix}-faqs-microdata`, FirstPageFaqsMicrodata);
+
+})();
+  
+</script>
+{% endif %}
+{% schema %}
+{
+  "name": "FAQ",
+  "class": "fpd-section--faq",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "FAQ"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "FPD FAQs",
+      "type": "content",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Question",
+          "default": "Question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>Provide the answer to the question here.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FPD FAQs",
+      "category": "Store information",
+      "blocks": [
+        {
+          "type": "content",
+          "settings": {
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
