@@ -1,0 +1,282 @@
+<div class="{% unless section.settings.full_width %}article{% endunless %} {% if section.settings.use_alt_bg %}use-alt-bg fully-padded-row--{{ section.settings.height }}{% else %}fully-spaced-row--{{ section.settings.height }}{% endif %}" data-cc-animate>
+  <div class="page-width">
+    <div class="align-{{ section.settings.text_alignment }} spaced-column fpd-content-brief-wrapper">
+      {% assign skip_block_count = 0 %}
+      <fpd-readmore-accordion button-text="Read More" button-class="btn btn-blue">
+      {% for block in section.blocks %}
+        {%- liquid
+          if skip_block_count > 0
+            assign skip_block_count = skip_block_count | minus: 1
+            continue
+          endif
+        -%}
+        
+        {% case block.type %}
+          {% when 'heading' %}
+            {% if block.settings.use_h1 %}
+              <h1 class="majortitle in-content" {{ block.shopify_attributes }}>{{ block.settings.title | escape }}</h1>
+            {% else %}
+              <h2 class="majortitle in-content h2-style" {{ block.shopify_attributes }}>{{ block.settings.title | escape }}</h2>
+            {% endif %}
+          {% when 'text' %}
+            <div class=" lightly-spaced-row {% if block.settings.enlarge_text %}large-text{% endif %}" {{ block.shopify_attributes }}>
+                  {{ block.settings.text }}
+           </div>
+        {% endcase %}
+      {% endfor %}
+        </fpd-readmore-accordion>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  
+const uniquePrefix = 'fp';
+    
+  class FpdReadmoreAccordion extends HTMLElement {
+    // initialization
+    constructor() {
+      super();
+      if (!this.buttonhide) {
+        this.setAttribute('hidden', true);
+        const hidden = this.expand === false ? 'show': 'hidden';
+        this.setChildrenhidden(hidden); 
+        const btn = document.createElement('button');
+        btn.innerHTML = this.getAttribute('button-text');
+        btn.setAttribute('class', this.getAttribute('button-class')+ ' btn-readmore');
+        btn.setAttribute('style', this.getAttribute('button-style'));
+        if (this.children.length > 1) {
+          this.appendChild(btn);
+          btn.addEventListener('click', e => {
+              this.expand = !this.expand;
+              if (this.expand) {
+                btn.innerHTML = 'Read Less';
+              } else {
+                btn.innerHTML = 'Read More';
+              }
+          }); 
+        }
+      } 
+    }
+  
+    // notice change on the expand attribue
+    static get observedAttributes() {
+       return ['expand'];
+    }
+   
+    // invoke each time expand element is changed
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === 'expand' && oldValue !== 'undefined') {
+        this.setChildrenhidden(newValue);
+      }
+    }
+   
+    // getter expand
+    get expand() {
+       return this.getAttribute('expand');
+    }
+   
+    // setter expand
+    set expand(val) {
+      if (val) {
+        this.setAttribute('expand', val);
+      } else {
+        this.removeAttribute('expand');
+      }
+    }
+   
+    // hide read more button if attritube button-hide-expand is set
+    get buttonhide() {
+      return this.hasAttribute('button-hide-expand');
+    }
+    
+    // hide some child nodes 
+    setChildrenhidden (val) {
+      // check if has childrens
+      if (this.children.length > 0) {   
+        const textNodes = Array.from(this.childNodes)
+        .filter(node => node.nodeType === 3 && node.textContent.trim().length > 1);
+        textNodes.forEach(node => {
+          const parg = document.createElement('p');
+          node.after(parg);
+          parg.appendChild(node);
+        });
+        let count = 0;
+          for (const child in this.children){
+            if (typeof this.children[child].nodeName != 'undefined' 
+               && this.children[child].nodeName != 'BUTTON') {
+              if (count > 1) {
+                 this.children[child].className = this.expand ? 'show' : 'hidden';
+              }
+              count++;
+            }
+         }
+         this.removeAttribute('hidden');
+       } else {
+         this.remove();
+       }
+     }
+  }
+  customElements.define(`${uniquePrefix}d-readmore-accordion`, FpdReadmoreAccordion);
+})();
+  
+</script>
+<style>
+.fpd-content-brief-wrapper {
+  max-width: 1500px;
+  margin: 50px auto 0;
+}
+.fpd-content-brief-wrapper a {
+  text-decoration: underline !important;
+  text-decoration-color: #419da8 !important;
+  color: #419da8 !important;
+  border-bottom: 0 !important;
+}
+h1.majortitle { margin-bottom: 30px; } 
+
+fpd-readmore-accordion h2, fpd-readmore-accordion h3, fpd-readmore-accordion h4 {
+  margin-top: 30px !important;
+  margin-bottom: 20px !important;
+}
+fpd-readmore-accordion[hidden] {
+  display:none;
+}
+fpd-readmore-accordion .hidden {
+  display: none;
+}
+fpd-readmore-accordion ul li{
+  margin-bottom: 10px;
+}
+fpd-readmore-accordion ul{
+  text-align: left;
+  display: block;
+  padding: 20px 0;
+  /*max-width: 460px;
+  margin: 0 auto;*/
+}
+.btn-readmore {
+  cursor: pointer;
+  margin-top: 20px;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: .025em!important;
+  font-size: 16px;
+  padding: 11px 23px 10px;
+  border-radius: 4px;
+  font-weight: 400;
+  width: fit-content;
+}
+</style>
+{% schema %}
+  {
+    "name": "FPD Content Brief",
+    "class": "section-rich-text",
+    "settings": [
+      {
+        "type": "select",
+        "id": "height",
+        "label": "Section height",
+        "default": "medium",
+        "options": [
+          {
+            "value": "small",
+            "label": "Small"
+          },
+          {
+            "value": "medium",
+            "label": "Medium"
+          },
+          {
+            "value": "large",
+            "label": "Large"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "text_alignment",
+        "label": "Text alignment",
+        "default": "center",
+        "options": [
+          {
+            "value": "left",
+            "label": "Left"
+          },
+          {
+            "value": "center",
+            "label": "Center"
+          },
+          {
+            "value": "right",
+            "label": "Right"
+          }
+        ]
+      },
+      {
+        "type": "checkbox",
+        "id": "full_width",
+        "label": "Wide display",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "use_alt_bg",
+        "label": "Use alternate section color",
+        "default": false
+      }
+    ],
+    "blocks": [
+      {
+        "type": "heading",
+        "name": "Heading",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Rich text"
+          },
+          {
+            "type": "checkbox",
+            "id": "use_h1",
+            "label": "Set as primary page heading",
+            "info": "Use <h1> tag. One per page recommended. [Read more](https://cleancanvas.co.uk/support/symmetry/section-h1-setting)",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "name": "Text",
+        "settings": [
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Use this text to share information about your store with your customers. Describe products, share announcements, or welcome customers to your store.</p>"
+          },
+          {
+            "type": "checkbox",
+            "id": "enlarge_text",
+            "label": "Enlarge text",
+            "default": true
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "FPD Content Brief",
+        "settings": {},
+        "blocks": [
+          {
+            "type": "heading"
+          },
+          {
+            "type": "text"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
